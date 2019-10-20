@@ -1,0 +1,206 @@
+# AMG#!/bin/sh
+
+WD="/tmp/AMG_v2" #work dir
+mkdir -p "$WD"
+echo '' > "$WD"/channel_switch
+echo '' > "$WD"/mixer_vol_gui
+echo '' > "$WD"/special_switch
+SWGUI=''
+
+
+mixer (){
+	ONAME="$(echo "$CH_NAME" | sed 's/_/ / ; s/\\//')"
+	[ "$REC" == "yes" ]&& SW_ON="cap"	SW_OFF="nocap" REC_MESS="<text> <label>Capture</label> </text>" || SW_ON="unmute" SW_OFF="mute" REC_MESS=""
+	STEP="$(echo "$[$MAX_VAL/4]")"
+	[ "$STEP" == "0" ]&& STEP="1"
+	if [ "$1" == "full" ];then
+		if [ "$SW_VAL" == "on" ];then
+		VALUE="true"
+		else
+		VALUE="false"
+		fi
+	SWITCH='<hbox homogeneous="true">
+      <checkbox draw_indicator="false" active="'$VALUE'" width-request="85" height-request="24">
+       <label>'$ONAME'</label>
+       <variable>'$CH_NAME'M</variable>
+        <action condition="active_is_true('$CH_NAME'M)">amixer -q set "'$ONAME'" '$SW_ON' &</action>
+        <action condition="active_is_false('$CH_NAME'M)">amixer -q set "'$ONAME'" '$SW_OFF' &</action>
+      </checkbox>
+     </hbox>'
+	else
+	SWITCH='<hbox homogeneous="true">
+      <checkbox draw_indicator="false" active="true" width-request="85" height-request="24">
+       <label>'$ONAME'</label>
+       <visible>false</visible>
+      </checkbox>
+     </hbox>'
+	fi
+	if [ "$MONO" == "yes" ] ;then
+	SLIDER='     <hbox homogeneous="true" width-request="60">
+       <vscale width-request="40" height-request="100" range-max="'$MAX_VAL'" range-step="'$STEP'" inverted="true" auto-refresh="true">
+         <default>'$VOL_VAL'</default>
+        <variable>'$CH_NAME'VOL</variable>
+        <action>amixer -q set "'$ONAME'" $'$CH_NAME'VOL &</action>        
+       </vscale>
+       </hbox>'
+	else
+	echo "$VOL_VAL" | cut -f1 -d',' > $WD/${CH_NAME}_L
+	echo "$VOL_VAL" | cut -f2 -d',' > $WD/${CH_NAME}_R
+	L="$(cat $WD/${CH_NAME}_L)"
+	R="$(cat $WD/${CH_NAME}_R)"
+	[ "$L" == "$R" ]&& DUAL_SET="true" || DUAL_SET="false"
+	
+	SLIDER='     <hbox homogeneous="true" width-request="60">
+     
+       <vscale width-request="40" height-request="100" range-max="'$MAX_VAL'" range-step="'$STEP'" inverted="true" auto-refresh="true">
+        <variable>'$CH_NAME'L</variable>
+        <input file>'$WD/$CH_NAME'_L</input>
+        <action condition="active_is_true('$CH_NAME'C)">echo $'$CH_NAME'L > '$WD/$CH_NAME'_R</action>
+        <action condition="active_is_true('$CH_NAME'C)">refresh:'$CH_NAME'R</action>
+        <action>amixer -q set "'$ONAME'" $'$CH_NAME'L,$'$CH_NAME'R &</action>        
+       </vscale>
+       
+       <vscale width-request="40" height-request="100" range-max="'$MAX_VAL'" range-step="'$STEP'" inverted="true" auto-refresh="true">
+        <variable>'$CH_NAME'R</variable>
+        <input file>'$WD/$CH_NAME'_R</input>
+        <action condition="active_is_true('$CH_NAME'C)">echo $'$CH_NAME'R > '$WD/$CH_NAME'_L</action>
+        <action condition="active_is_true('$CH_NAME'C)">refresh:'$CH_NAME'L</action>
+        <action>amixer -q set "'$ONAME'" $'$CH_NAME'L,$'$CH_NAME'R &</action>
+       </vscale>
+       
+      </hbox>
+      <hbox spacing="11">
+       <text height-request="14" width-request="1"> <label>ˇ</label> </text>
+       <text> <label>L</label> </text>
+       <checkbox draw_indicator="false" active="'$DUAL_SET'" height-request="18">
+        <label>"="</label>
+        <variable>'$CH_NAME'C</variable>
+       </checkbox>
+       <text> <label>R</label> </text>
+       <text height-request="14" width-request="1"> <label>ˇ</label> </text>
+       </hbox>'
+	fi
+	
+	echo '   <vbox tooltip-text="'$ONAME' channel" height-request="140">
+	<text height-request="3"> <label>ˇ</label> </text>
+	'$SWITCH'
+	'$SLIDER'
+	'$REC_MESS'
+	</vbox>
+    <vseparator>
+    </vseparator>
+	' >> "$WD"/mixer_vol_gui
+}
+export -f mixer
+
+amixer contents | tr '\n' ' ' | sed 's/numid/\nnumid/g' | grep 'rw' | grep "iface=MIXER" | cut -f1 -d'|' | cut -f4- -d'=' |
+sed 's/   ; type=/\|/g;s/,access/\|/g;s/=rw.*,values=//;s/,min=0,max=/\|/g;s/,st.*es=/\|/g' | sed "s/'//g" | while read line ;do
+if [ "$(echo "$line" | cut -f2 -d'|' | grep "BOOLEAN")" ];then
+	if [ "$(echo "$line" | cut -f3 -d'|' | cut -c1)" == "1" ];then
+	MONO="yes"
+	else
+	MONO="no"
+	fi
+	
+	NAME="$(echo "$line" | cut -f1 -d'|')"
+	if [ "$NAME" == "Playback Switch" -o "$NAME" == "Capture Switch" -o "$NAME" == "Switch" ];then
+	CH_NAME="$(echo "$NAME" | cut -f1 -d' ')"
+	else
+	CH_NAME="$(echo  "$NAME" | sed 's/ Playback Switch//g ; s/ Capture Switch//g' | sed 's/(/\\(/g ; s/)/\\)/g' | sed 's/ /_/g')"
+	fi
+	
+	if [ "$(echo "$line" | grep "Capture")" ];then
+	REC="yes"
+	else
+	REC="no"
+	fi
+	SW_VAL="$(echo "$line" | cut -f2 -d'=' | cut -f1 -d',')"
+	SW_CH="$CH_NAME:$REC:$MONO:$SW_VAL"
+	echo "$SW_CH" >> "$WD"/channel_switch
+
+elif [ "$(echo "$line" | cut -f2 -d'|' | grep "INTEGER")" ];then
+	NAME="$(echo "$line" | cut -f1 -d'|')"
+	if [ "$NAME" == "Playback Volume" -o "$NAME" == "Capture Volume" ];then
+	CH_NAME="$(echo "$NAME" | cut -f1 -d' ')"
+	else
+	CH_NAME="$(echo  "$NAME" | sed 's/ Playback Volume//g ; s/ Capture Volume//g ; s/ Volume//g' | sed 's/(/\\(/g ; s/)/\\)/g' | sed 's/ /_/g')"
+	fi
+	if [ "$(echo "$line" | grep "Capture")" ];then
+	REC="yes"
+	else
+	REC="no"
+	fi
+	MAX_VAL="$(echo "$line" | cut -f4 -d'|')"
+	VOL_VAL="$(echo "$line" | cut -f5 -d'|')"
+	if [ "$(echo "$line" | cut -f3 -d'|' | cut -c1)" == "1" ];then
+	MONO="yes"
+	else
+	MONO="no"
+	fi
+	SW_CH="$CH_NAME:$REC:$MONO"
+	if [ "$(cat "$WD"/channel_switch | grep "$SW_CH")" ];then
+	mixer full
+	sed -i "s/${SW_CH}.*// ; /^$/d" "$WD"/channel_switch
+	else
+	mixer
+	fi
+elif [ "$(echo "$line" | cut -f2 -d'|' | grep "ENUMERATED")" ];then
+	CH_NAME="$(echo "$line" | cut -f1 -d'|')"
+	DEF="$(echo "$line" | cut -f2- -d';' | sed 's/Item #/\n/g ; s/\: values=/\n/g ; s/   ;//g' | tail -n 1)"
+	DEF2="$(echo "$line" | cut -f2- -d';' | sed 's/Item #/\n/g ; s/\: values=/\n/g ; s/   ;//g' | head -n -1 | grep "$DEF ")"
+	DEF2="$(echo "$DEF2" | cut -f2 -d' ')"
+	ITEMS="$(echo "$line" | cut -f2- -d';' | sed 's/Item #/\n/g ; s/\: values=/\n/g ; s/   ;//g' | head -n -1 | sed 's/\n/:/g' | awk 'NF')"
+	echo "$ITEMS" | cut -f2 -d' ' | while read i;do
+	echo '<item>'$i'</item>' >> "$WD"/special_switch
+	done
+	CH2="$(echo "$CH_NAME" | sed 's/-//g ; s/ /_/g')"
+	echo ' <vbox tooltip-text="'$CH_NAME' channel">
+	  <text> <label>'$CH_NAME'</label> </text>
+	  <hbox>
+	   <comboboxtext width-request="100">
+       <variable>'$CH2'_ITEM</variable>
+       <default>'$DEF2'</default>
+	   '`cat "$WD"/special_switch`'
+	   <action>amixer -q set "'$CH_NAME'" "$'$CH2'_ITEM" &</action>
+      </comboboxtext>
+	  </hbox>
+     </vbox>
+    <vseparator>
+    </vseparator>
+	' >> "$WD"/special_switch_gui
+	ITEMS=''
+	echo '' > "$WD"/special_switch
+	CH_NAME=''
+	DEF=''
+	DEF2=''
+fi
+done
+
+MGUI="$(cat "$WD"/mixer_vol_gui)"
+SWGUI="$(cat "$WD"/special_switch_gui)"
+INFO="$(echo "$(amixer info | grep Card | sed "s/ at .*// ; s/ default/:/g ; s/'//g") -$(amixer info | grep Mixer | sed "s/\t//g ; s/ name:/:/g ; s/  / /g ; s/'//g")")"
+
+SWGUI='<vbox height-request="70">
+	<hbox space-expand="true" scrollable="true"  hscrollbar-policy="1">
+	'$SWGUI'
+	</hbox>
+	</vbox>'
+
+D_WIDTH="$(xprop -root | grep "_NET_WORKAREA(CARDINAL)" | cut -f4 -d',' | sed 's/ //g')"
+[ "$D_WIDTH" -lt "800" ]&& W_WIDTH="$D_WIDTH" || W_WIDTH="800"
+
+export MIXER='<window title="Alsa mixer gui v2"  image-name="/usr/share/pixmaps/sound_mixer.svg">
+<vbox width-request="'$W_WIDTH'" height-request="300">
+	<text>	<label>'$INFO'</label>	</text>
+    <hbox scrollable="true" hscrollbar-policy="1" space-expand="true">
+    '$MGUI'
+    </hbox>
+
+    '$SWGUI'
+
+</vbox>
+</window>'
+#eval "$(gtkdialog --program=MIXER --center)"
+#[ "$EXIT" == "abort" ]&& rm -r "$WD"
+gtkdialog --program=MIXER --center
+rm -r "$WD"
