@@ -1,4 +1,4 @@
-# AMG#!/bin/sh
+#!/bin/sh
 
 WD="/tmp/AMG_v2" #work dir
 mkdir -p "$WD"
