@@ -1,0 +1,130 @@
+numid=24,iface=CARD,name='Dock Mic Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=off
+numid=27,iface=CARD,name='Headphone Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=off
+numid=26,iface=CARD,name='Line Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=off
+numid=25,iface=CARD,name='Mic Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=off
+numid=28,iface=CARD,name='Speaker Phantom Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=on
+numid=23,iface=MIXER,name='Master Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=1
+  : values=on
+numid=22,iface=MIXER,name='Master Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=1,min=0,max=127,step=0
+  : values=127
+  | dBscale-min=-95.25dB,step=0.75dB,mute=1
+numid=2,iface=MIXER,name='Headphone Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=on,on
+numid=1,iface=MIXER,name='Headphone Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=127,step=0
+  : values=127,127
+  | dBscale-min=-95.25dB,step=0.75dB,mute=1
+numid=32,iface=MIXER,name='PCM Playback Volume'
+  ; type=INTEGER,access=rw---RW-,values=2,min=0,max=255,step=0
+  : values=255,255
+  | dBscale-min=-51.00dB,step=0.20dB,mute=0
+numid=11,iface=MIXER,name='Line Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=off,off
+numid=10,iface=MIXER,name='Line Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=31,step=0
+  : values=0,0
+  | dBscale-min=-34.50dB,step=1.50dB,mute=0
+numid=9,iface=MIXER,name='Mic Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=off,off
+numid=8,iface=MIXER,name='Mic Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=31,step=0
+  : values=0,0
+  | dBscale-min=-34.50dB,step=1.50dB,mute=0
+numid=16,iface=MIXER,name='Capture Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=on,on
+numid=18,iface=MIXER,name='Capture Switch',index=1
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=off,off
+numid=15,iface=MIXER,name='Capture Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=15,step=0
+  : values=15,15
+  | dBscale-min=0.00dB,step=1.50dB,mute=0
+numid=17,iface=MIXER,name='Capture Volume',index=1
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=15,step=0
+  : values=8,8
+  | dBscale-min=0.00dB,step=1.50dB,mute=0
+numid=5,iface=MIXER,name='Loopback Mixing'
+  ; type=ENUMERATED,access=rw------,values=1,items=2
+  ; Item #0 'Disabled'
+  ; Item #1 'Enabled'
+  : values=0
+numid=12,iface=MIXER,name='Auto-Mute Mode'
+  ; type=ENUMERATED,access=rw------,values=1,items=2
+  ; Item #0 'Disabled'
+  ; Item #1 'Enabled'
+  : values=0
+numid=20,iface=MIXER,name='Beep Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=1
+  : values=off
+numid=21,iface=MIXER,name='Beep Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=1,min=0,max=3,step=0
+  : values=0
+  | dBscale-min=-18.00dB,step=6.00dB,mute=0
+numid=33,iface=MIXER,name='Digital Capture Volume'
+  ; type=INTEGER,access=rw---RW-,values=2,min=0,max=120,step=0
+  : values=60,60
+  | dBscale-min=-30.00dB,step=0.50dB,mute=0
+numid=19,iface=MIXER,name='Dock Mic Boost Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=3,step=0
+  : values=0,0
+  | dBscale-min=0.00dB,step=10.00dB,mute=0
+numid=7,iface=MIXER,name='Dock Mic Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=off,off
+numid=6,iface=MIXER,name='Dock Mic Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=31,step=0
+  : values=0,0
+  | dBscale-min=-34.50dB,step=1.50dB,mute=0
+numid=13,iface=MIXER,name='Input Source'
+  ; type=ENUMERATED,access=rw------,values=1,items=3
+  ; Item #0 'Dock Mic'
+  ; Item #1 'Mic'
+  ; Item #2 'Line'
+  : values=1
+numid=14,iface=MIXER,name='Input Source',index=1
+  ; type=ENUMERATED,access=rw------,values=1,items=3
+  ; Item #0 'Dock Mic'
+  ; Item #1 'Mic'
+  ; Item #2 'Line'
+  : values=0
+numid=4,iface=MIXER,name='Speaker Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=on,on
+numid=3,iface=MIXER,name='Speaker Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=127,step=0
+  : values=102,102
+  | dBscale-min=-95.25dB,step=0.75dB,mute=1
+numid=30,iface=PCM,name='Capture Channel Map'
+  ; type=INTEGER,access=r----R--,values=2,min=0,max=36,step=0
+  : values=0,0
+  | container
+    | chmap-fixed=FL,FR
+
+numid=29,iface=PCM,name='Playback Channel Map'
+  ; type=INTEGER,access=r----R--,values=2,min=0,max=36,step=0
+  : values=0,0
+  | container
+    | chmap-fixed=FL,FR
+
+numid=31,iface=PCM,name='Capture Channel Map',device=2
+  ; type=INTEGER,access=r----R--,values=2,min=0,max=36,step=0
+  : values=0,0
+  | container
+    | chmap-fixed=FL,FR
+
